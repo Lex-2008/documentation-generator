@@ -29,15 +29,13 @@ CUR_BRANCH='master'
 
 LOCAL_WEBROOT=/var/www/docs/$CUR_BRANCH
 
-LOCAL_WEBSERVER_URL='http://localhost/docs'
+LOCAL_WEBSERVER_URL='http://localhost:8000/docs'
 
-if [ "$LOCAL_WEBROOT" ]; then
- sudo mkdir -p $LOCAL_WEBROOT || true
-fi
+set -x
 
 # copy _site to the local webroot
-sudo rm -R $LOCAL_WEBROOT/*
-sudo cp -R $DIR/* $LOCAL_WEBROOT/
+sudo rm -Rf $LOCAL_WEBROOT
+sudo cp -R $DIR $LOCAL_WEBROOT
 
 
 #get all files and remove / and .html from filename
@@ -47,6 +45,8 @@ if [ "$DIR2" ]; then
  mkdir -p $DIR2 || true
 fi
 
+( cd /var/www && python -m SimpleHTTPServer) &
+
 # do not create PDF for tags or TODO printable-reference
 for i in $FILENAME; do
     if [ $i != "tags" ] && [ $i != "printable-reference" ]
@@ -55,5 +55,7 @@ for i in $FILENAME; do
         weasyprint $LOCAL_WEBSERVER_URL/$CUR_BRANCH/$i.html $DIR2/$i.pdf || true
     fi
 done
+
+kill %1
 
 echo "PDF generation finished"
