@@ -39,23 +39,28 @@ mkdir -p ${LOCAL_WEBROOT%/*}
 cp -R $DIR $LOCAL_WEBROOT
 ( cd $WRKDIR/www && python -m SimpleHTTPServer) &
 
+# start X to make QT happy
+export DISPLAY=:11
+Xvfb $DISPLAY -screen 0 1920x1080x16 &
 
-#get all files and remove / and .html from filename
-FILENAME=`find $DIR -type f -name *.html | awk -F $DIR '{print $2}' |  cut -d "/" -f 2 | cut -d . -f 1`
+# #get all files and remove / and .html from filename
+# FILENAME=`find $DIR -type f -name *.html | awk -F $DIR '{print $2}' |  cut -d "/" -f 2 | cut -d . -f 1`
 
 if [ "$DIR2" ]; then
  mkdir -p $DIR2 || true
 fi
 
-# do not create PDF for tags or TODO printable-reference
-for i in $FILENAME; do
-    if [ $i != "tags" ] && [ $i != "printable-reference" ]
-    then
-        echo '\n' $i '\n'
-        weasyprint $LOCAL_WEBSERVER_URL/$i.html $DIR2/$i.pdf || true
-    fi
-done
+# # do not create PDF for tags or TODO printable-reference
+# for i in $FILENAME; do
+#     if [ $i != "tags" ] && [ $i != "printable-reference" ]
+#     then
+#         echo '\n' $i '\n'
+#         weasyprint $LOCAL_WEBSERVER_URL/$i.html $DIR2/$i.pdf || true
+#     fi
+# done
 
-kill %1
+wkhtmltopdf $LOCAL_WEBSERVER_URL/reference-printable.html $DIR2/reference-printable.pdf || true
+
+kill %1 %2
 
 echo "PDF generation finished"
